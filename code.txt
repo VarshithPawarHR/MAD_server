@@ -387,6 +387,613 @@ public class MainActivity extends AppCompatActivity {
 
 
 —---------------------------------------------------------------------
+PART - B:
+
+Lab program number 5 
+
+//NOTE : HERE IN PGM THEY HAVE ASKED 2 FILES WRITE SOMETHING IN OTHER FILE 
+
+Add this to androidManifest.xml:
+
+<uses-permission android:name="android.permission.INTERNET" />
+
+package com.example.myapplication;
+
+
+public class MainActivity extends AppCompatActivity {
+
+
+   EditText  urlEdit;
+   Button loadbtn;
+
+
+   WebView mywebview;
+
+
+   @Override
+   protected void onCreate(Bundle savedInstanceState) {
+       super.onCreate(savedInstanceState);
+       EdgeToEdge.enable(this);
+       setContentView(R.layout.activity_main);
+
+
+       urlEdit = findViewById(R.id.textView);
+       loadbtn = findViewById(R.id.button);
+       mywebview = findViewById(R.id.webview);
+
+
+       //new codes
+       mywebview.setWebViewClient(new WebViewClient());
+       mywebview.getSettings().setJavaScriptEnabled(true);
+
+
+       mywebview.loadUrl("https://www.google.com");
+
+
+       loadbtn.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               String url = urlEdit.getText().toString().trim();
+               if (!url.isEmpty()) {
+                   mywebview.loadUrl(url);
+               }
+               else{
+                   mywebview.loadUrl("https://www.google.com");
+               }
+
+
+           }
+       });
+
+
+
+
+   }
+}
+
+—------------------------------------------------------------------------------
+Lab Pgm 2
+
+package com.example.myapplication;
+
+
+public class MainActivity extends AppCompatActivity {
+
+
+   Button btn;
+   ProgressBar prg;
+   //create a handler like async only better way
+   // A Handler to communicate with the UI thread
+   private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+
+   @Override
+   protected void onCreate(Bundle savedInstanceState) {
+       super.onCreate(savedInstanceState);
+       EdgeToEdge.enable(this);
+       setContentView(R.layout.activity_main);
+
+
+       btn = findViewById(R.id.button);
+       prg = findViewById(R.id.progressBar);
+
+
+       btn.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               start_counting();
+           }
+       });
+   }
+
+
+   private void start_counting() {
+       // Disable the button so the user can't click it again
+       btn.setEnabled(false);
+       Toast.makeText(this,"starting count...",Toast.LENGTH_LONG).show();
+
+
+       new Thread(new Runnable() {
+           @Override
+           public void run() {
+
+
+               for (int i = 0; i <= 1000; i++) {
+                   try {
+                       Thread.sleep(100);
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }
+
+
+                   final  int progress = i;
+
+
+                   mainHandler.post(new Runnable() {
+                       @Override
+                       public void run() {
+                           prg.setProgress(progress);
+                       }
+                   });
+               } // <-- 'for' loop ends here
+
+
+               // This runs *after* the for loop is complete
+               mainHandler.post(new Runnable() {
+                   @Override
+                   public void run() {
+                       Toast.makeText(MainActivity.this, "Count complete!", Toast.LENGTH_LONG).show();
+                       btn.setEnabled(true);
+                   }
+               });
+
+
+           } // <-- 'run()' method ends here
+       }).start(); // <-- 'new Thread()' ends and starts here
+   } // <-- 'start_counting()' method ends here
+} // <-- 'MainActivity' class ends here
+
+—------------------------------------------------------------------------------------
+Lab program  3
+
+package com.example.myapplication;
+
+
+public class MainActivity extends AppCompatActivity {
+
+
+   private ProgressBar batteryProgressBar;
+   private TextView batteryLevelText;
+   private LinearLayout mainLayout;
+
+
+   // 1. Create the BroadcastReceiver
+   private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+       @Override
+       public void onReceive(Context context, Intent intent) {
+           // Get battery level from the Intent
+           int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+
+
+           // Update the ProgressBar
+           batteryProgressBar.setProgress(level);
+
+
+           // Update the TextView
+           batteryLevelText.setText(level + "%");
+
+
+           // Change the background color based on the level
+           if (level <= 20) {
+               // Red: 0% to 20%
+               mainLayout.setBackgroundColor(Color.RED);
+           } else if (level <= 60) {
+               // Blue: 21% to 60%
+               mainLayout.setBackgroundColor(Color.BLUE);
+           } else {
+               // Green: 61% to 100%
+               mainLayout.setBackgroundColor(Color.GREEN);
+           }
+       }
+   };
+
+
+   @Override
+   protected void onCreate(Bundle savedInstanceState) {
+       super.onCreate(savedInstanceState);
+       setContentView(R.layout.activity_main);
+
+
+       // Find the views
+       batteryProgressBar = findViewById(R.id.batteryProgressBar);
+       batteryLevelText = findViewById(R.id.batteryLevelText);
+       mainLayout = findViewById(R.id.mainLayout);
+   }
+
+
+   @Override
+   protected void onResume() {
+       super.onResume();
+       // 2. Register the receiver to listen for battery changes
+       this.registerReceiver(this.batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+   }
+
+
+   @Override
+   protected void onPause() {
+       super.onPause();
+       // 3. Unregister the receiver to save battery and prevent leaks
+       this.unregisterReceiver(this.batteryReceiver);
+   }
+}
+
+
+
+—------------------------------------------------------------------------------------------------------------------
+Lab pgm 4:
+
+DB helper.java
+
+package com.yourpackage; // Make sure this matches your package name
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DBHelper extends SQLiteOpenHelper {
+
+    // Database Info
+    private static final String DATABASE_NAME = "users.db";
+    private static final int DATABASE_VERSION = 1;
+
+    // Table Info
+    private static final String TABLE_NAME = "users";
+    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_NAME = "name";
+
+    // Constructor
+    public DBHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    // Called when the database is created for the first time
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        // SQL query to create the table
+        String createTableQuery = "CREATE TABLE " + TABLE_NAME + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_NAME + " TEXT)";
+        db.execSQL(createTableQuery);
+    }
+
+    // Called when the database needs to be upgraded
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop the older table if it exists and create a new one
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
+    }
+
+    // --- Database Operations ---
+
+    /**
+     * Inserts a new name into the database.
+     */
+    public boolean insertName(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        
+        values.put(COLUMN_NAME, name); // Put the name into the 'name' column
+
+        // Insert the row
+        // insert() returns the row ID of the new row, or -1 if an error occurred
+        long result = db.insert(TABLE_NAME, null, values);
+        
+        db.close(); // Close database connection
+        
+        return result != -1; // Return true if insert was successful
+    }
+
+    /**
+     * Reads all names from the database and returns them as a String.
+     */
+    public String getAllNames() {
+        StringBuilder stringBuilder = new StringBuilder();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // SQL query to select all data
+        String selectQuery = "SELECT * FROM " + TABLE_NAME;
+        
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // Loop through all rows and add to the string
+        if (cursor.moveToFirst()) {
+            do {
+                // Get the data from the "name" column (column index 1)
+                String name = cursor.getString(1);
+                stringBuilder.append(name + "\n");
+            } while (cursor.moveToNext());
+        }
+
+        // Clean up
+        cursor.close();
+        db.close();
+
+        if (stringBuilder.length() == 0) {
+            return "No data in database.";
+        } else {
+            return stringBuilder.toString();
+        }
+    }
+}
+
+
+Mainactivity.java
+
+package com.yourpackage; // Make sure this matches your package name
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity {
+
+    // UI Views
+    EditText nameEditText;
+    Button addButton;
+    TextView dataTextView;
+
+    // Database Helper
+    DBHelper dbHelper;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Find views
+        nameEditText = findViewById(R.id.nameEditText);
+        addButton = findViewById(R.id.addButton);
+        dataTextView = findViewById(R.id.dataTextView);
+
+        // Initialize the database helper
+        dbHelper = new DBHelper(this);
+
+        // Set click listener for the "Add" button
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Get the text from the EditText
+                String name = nameEditText.getText().toString().trim();
+
+                // Check if the name is not empty
+                if (!name.isEmpty()) {
+                    // Insert the name into the database
+                    boolean isInserted = dbHelper.insertName(name);
+
+                    if (isInserted) {
+                        Toast.makeText(MainActivity.this, "Data inserted", Toast.LENGTH_SHORT).show();
+                        // Clear the EditText
+                        nameEditText.setText("");
+                        // Refresh the data display
+                        loadDataIntoTextView();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Error inserting data", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    nameEditText.setError("Please enter a name");
+                }
+            }
+        });
+
+        // Load any existing data from the database when the app starts
+        loadDataIntoTextView();
+    }
+
+
+    private void loadDataIntoTextView() {
+        String data = dbHelper.getAllNames();
+        dataTextView.setText(data);
+    }
+}
+—---------------------------------------------------------------------------------------------------
+
+Lab program 6:
+
+Only xml here
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerInParent="true"
+        android:src="@mipmap/ic_launcher" /> <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/blinkButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Blink" />
+
+            <Button
+                android:id="@+id/moveButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Move" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/rotateButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Rotate" />
+
+            <Button
+                android:id="@+id/zoomButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Zoom" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
+
+
+
+
+res/anim/blink.xml:
+
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+    <alpha
+        android:duration="500"
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0"
+        android:repeatCount="1"
+        android:repeatMode="reverse" />
+</set>
+
+
+
+res/anim/move.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+    <translate
+        android:duration="800"
+        android:fromXDelta="0%"
+        android:toXDelta="150%"
+        android:repeatCount="1"
+        android:repeatMode="reverse" />
+</set>
+
+
+res/anim/rotate.xml:
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+    <rotate
+        android:duration="1000"
+        android:fromDegrees="0"
+        android:toDegrees="360"
+        android:pivotX="50%"
+        android:pivotY="50%" />
+</set>
+
+
+res/anim/zoom.xml:
+
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+    <scale
+        android:duration="1000"
+        android:fromXScale="1.0"
+        android:fromYScale="1.0"
+        android:toXScale="2.0"
+        android:toYScale="2.0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:repeatCount="1"
+        android:repeatMode="reverse" />
+</set>
+
+
+mainactivity .java:
+
+
+package com.yourpackage; // Make sure this matches your package name
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.ImageView;
+
+public class MainActivity extends AppCompatActivity {
+
+    ImageView imageView;
+    Button blinkButton, moveButton, rotateButton, zoomButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Find all the views
+        imageView = findViewById(R.id.imageView);
+        blinkButton = findViewById(R.id.blinkButton);
+        moveButton = findViewById(R.id.moveButton);
+        rotateButton = findViewById(R.id.rotateButton);
+        zoomButton = findViewById(R.id.zoomButton);
+
+        // Set listener for Blink
+        blinkButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Load the animation from the anim file
+                Animation blinkAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.blink);
+                // Start the animation on the image
+                imageView.startAnimation(blinkAnimation);
+            }
+        });
+
+        // Set listener for Move
+        moveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation moveAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.move);
+                imageView.startAnimation(moveAnimation);
+            }
+        });
+
+        // Set listener for Rotate
+        rotateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation rotateAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate);
+                imageView.startAnimation(rotateAnimation);
+            }
+        });
+
+        // Set listener for Zoom
+        zoomButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation zoomAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.zoom);
+                imageView.startAnimation(zoomAnimation);
+            }
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
 
 
 
