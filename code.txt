@@ -1,3 +1,119 @@
+9.Camera
+
+Andriod manifest:
+ <uses-permission android:name="android.permission.CAMERA" />
+
+xml :
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cl"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#303030"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap camera to set background"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:shadowColor="@android:color/black"
+        android:shadowRadius="5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:clickable="true"
+        android:src="@android:drawable/ic_menu_camera"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@android:color/white"
+        android:contentDescription="Take Picture" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+mainactivity.java:
+
+package com.example.myapplication;
+
+import com.example.myapplication.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+public class MainActivity extends AppCompatActivity {
+
+    // 1. Declare UI components
+    private ConstraintLayout mainLayout; // This is the 'r' from your manual
+    private FloatingActionButton fabCamera;
+
+    // 2. Launcher for Camera Permission
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+
+                    launchCamera();
+                } else {
+
+                    Toast.makeText(this, "Camera permission is needed", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+    private final ActivityResultLauncher<Void> takePictureLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
+                if (bitmap != null) {
+                    // This is your simplified logic
+                    Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                    mainLayout.setBackground(drawable);
+                }
+            });
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+
+        mainLayout = findViewById(R.id.cl);
+        fabCamera = findViewById(R.id.fab_camera);
+
+
+        fabCamera.setOnClickListener(v -> {
+            checkCameraPermissionAndLaunch();
+        });
+    }
+
+    private void checkCameraPermissionAndLaunch() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            // Permission is granted
+            launchCamera();
+        } else {
+            // Request permission
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private void launchCamera() {
+
+        takePictureLauncher.launch(null);
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------------------------
+
 3. App that generates random colour on click
 
 package com.example.myapplication;
@@ -36,6 +152,70 @@ public class MainActivity extends AppCompatActivity {
 
 
 —------------------------------------------------------------------------
+
+question number 5 context menu
+
+package com.example.myapplication;
+
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.PopupMenu;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
+public class MainActivity extends AppCompatActivity {
+
+    private ConstraintLayout mainLayout;
+    private Button changeColorButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mainLayout = findViewById(R.id.cl);
+        changeColorButton = findViewById(R.id.button_change_color);
+
+        // This is the "short way"
+        changeColorButton.setOnClickListener(view -> {
+
+            // 1. Create a PopupMenu
+            PopupMenu popupMenu = new PopupMenu(MainActivity.this, view); // Anchors menu to the button
+
+            // 2. Add menu items programmatically
+            popupMenu.getMenu().add("Red");
+            popupMenu.getMenu().add("Green");
+            popupMenu.getMenu().add("Blue");
+            popupMenu.getMenu().add("Default");
+
+            // 3. Set a listener for when an item is clicked
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                CharSequence title = menuItem.getTitle();
+
+                if (title.equals("Red")) {
+                    mainLayout.setBackgroundColor(Color.RED);
+                } else if (title.equals("Green")) {
+                    mainLayout.setBackgroundColor(Color.GREEN);
+                } else if (title.equals("Blue")) {
+                    mainLayout.setBackgroundColor(Color.BLUE);
+                } else if (title.equals("Default")) {
+                    mainLayout.setBackgroundColor(Color.parseColor("#303030")); // A default dark grey
+                }
+
+                return true;
+            });
+
+            // 4. Show the menu
+            popupMenu.show();
+        });
+    }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
 
 2.Simple calculator
 
